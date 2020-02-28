@@ -36,3 +36,6 @@
 
 # CMake build-debug directory
 cmake-build-debug/
+
+# GUI Output Files
+out/
