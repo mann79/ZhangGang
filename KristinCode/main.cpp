@@ -1,7 +1,9 @@
 #include <iostream>
+#include <fstream> // for ifstream
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <sstream> // for stringstream
 #include <cmath>
 
 
@@ -33,12 +35,75 @@ void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> m
 void categoryColumnCombinations(Dataset a);
 
 int main() {
-    Dataset csvFile1;
-    getData(csvFile1);
+    ifstream inFile;
+    inFile.open("GenderPetTest.csv"); // could replace parameter with cin,
+                                      // but currently using PetTest for testing purposes.
+    if (!inFile)
+    {
+        cout << "Unable to open file\n";
+        exit(1); // terminate with error
+    }
+
+    // create a Dataset struct for this csv file:
+    Dataset genderPetData = {};
+
+    // grab first line's column names:
+    // referencing: https://www.gormanalysis.com/blog/reading-and-writing-csv-files-with-cpp/
+    string firstLine;
+    string colName;
+    int colCount = 0;
+    if( inFile.good() ) // referencing: https://www.geeksforgeeks.org/ios-good-function-in-c-with-examples/
+    {
+        getline(inFile, firstLine);
+        stringstream firstLineStream(firstLine); // A stringstream associates a string object with a stream
+                                                 // allowing you to read from the string as if it were a
+                                                 // stream (like cin).
+        // extract each column name from the first line's stream
+        while( getline(firstLineStream, colName, ',') )
+        {
+            // to see if the column name was read correctly:
+            cout << " " << colName << endl;
+
+            colCount++; // keep track of how many columns there were
+
+            // ------ would need to put data in vectors and struct here: ------
+
+        }
+        // update Dataset struct ncol here:
+        genderPetData.ncol = colCount;
+    }
+
+    // read the rest of the data line by line:
+    string line;
+    string element;
+    int rowCount = 0;
+    while( getline(inFile, line) )
+    {
+        rowCount++; // keep track of how many rows there were
+
+        stringstream lineStream(line);
+        // extract each element in the row:
+        for( int i = 0; i < genderPetData.ncol; i++ ) // since we can assume clean data
+        {
+            getline(lineStream, element, ',');
+
+            // to see if the column name was read correctly:
+            cout << " " << element;
+
+            // ------ would have to check if element is categorical or numerical here: ------
+            // ------ based off that, would have to put data in vectors and struct here: ------
+        }
+        cout << endl;
+    }
+    // update Dataset struct nrow here:
+    genderPetData.nrow = rowCount;
+    
+    //Dataset csvFile1;
+    //getData(csvFile1);
     //cout << "csvFile1.ncol:" << csvFile1.ncol << endl;
     //cout << "csvFile1.nrow:" << csvFile1.nrow << endl;
     //cout << csvFile1.cat_cols << csvFile1.num_cols << endl;
-    categoryColumnCombinations(csvFile1);
+    //categoryColumnCombinations(csvFile1);
 
     return 0;
 }
