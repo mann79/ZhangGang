@@ -13,11 +13,11 @@
 */
 
 // Represents the parsed CSV files that main will input to the library via function calls
-struct Dataset {
-    int rows;
-    int columns;
-    std::unordered_map<std::string, std::vector<std::string>> cat_cols;
-    std::unordered_map<std::string, std::vector<float>> num_cols;
+struct Dataset{
+    int nrow; //number of rows
+    int ncol; //number of cols
+    std::unordered_map<std::string, std::vector<std::string>> cat_cols; //categorical cols
+    std::unordered_map<std::string, std::vector<float>> num_cols; //numerical cols
 };
 
 #endif //CHISQUARE_DATASET_H
