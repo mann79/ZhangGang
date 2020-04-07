@@ -20,4 +20,14 @@ struct Dataset{
     std::unordered_map<std::string, std::vector<float>> num_cols; //numerical cols
 };
 
+std::unordered_map<std::string, int> countFrequencyCat_Col(std::vector<std::string> v);
+std::unordered_map<std::string, int> countFrequencyNum_Col(std::vector<float> v);
+std::vector<std::vector<int>> buildContingencyTable(std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
+std::vector<std::vector<float>> buildExpectedValuesTable(std::vector<std::vector<int>> v, std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
+std::vector<std::vector<float>> buildEOSquaredETable(std::vector<std::vector<int>> v1, std::vector<std::vector<float>> v2, std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
+float sumEOSquareEValues(std::vector<std::vector<float>> v, std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
+int degreeOfFreedom(std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
+void compareColumns(std::unordered_map<std::string, int> mp1, std::unordered_map<std::string, int> mp2);
+void categoryColumnCombinations(Dataset dataSet);
+
 #endif //CHISQUARE_DATASET_H
