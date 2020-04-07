@@ -106,65 +106,41 @@ bool isFloat(const std::string &input) {
 
 Dataset parseCSV(std::ifstream &inputFile) {
     Dataset testDataSet = {};
-
-    // grab first line's column names: referencing: https://www.gormanalysis.com/blog/reading-and-writing-csv-files-with-cpp/
-    std::string firstLine;
-    std::string colName;
-
     int colCount = 0;
+    int rowCount = 0;
     std::vector<std::string> colNames;
+    std::string line;
+    std::string element;
 
     if(inputFile.good()) { // referencing: https://www.geeksforgeeks.org/ios-good-function-in-c-with-examples/
-        getline(inputFile, firstLine);
-        /* A stringstream associates a string object with a stream allowing you to read from the string as if it were a
-         * stream (like cin).
-         */
-        std::stringstream firstLineStream(firstLine);
+        getline(inputFile, line);
+        std::stringstream firstLineStream(line);
 
-        // extract each column name from the first line's stream
-        while(getline(firstLineStream, colName, ',')) {
-            // to see if the column name was read correctly:
-            std::cout << " " << colName << std::endl;
-            colCount++; // keep track of how many columns there were
+        // Parse the first row and build the DataSet struct's maps of numerical/categorical data
+        while(getline(firstLineStream, element, ',')) {
+            colCount++;
 
-            // ------ would need to put data in vectors and struct here: ------
-            colNames.push_back(colName);
+            if (isFloat(element)) {
+                colNames.push_back("Column " + std::to_string(colCount) + " - numerical");
+                testDataSet.num_cols[colNames[colCount-1]].push_back(std::stof(element));
+            } else {
+                colNames.push_back("Column " + std::to_string(colCount) + " - categorical");
+                testDataSet.cat_cols[colNames[colCount-1]].push_back(element);
+            }
         }
     }
     testDataSet.ncol = colCount;
-
-    // Read the row data
-    std::string line;
-    std::string element;
-    int rowCount = 0;
-
-    // Handle the first row and create the maps properly to be filled with the remaining data
-    getline(inputFile, line);
     rowCount++;
-    std::stringstream ls(line);
-    for (int i = 0; i < testDataSet.ncol; i++) {
-        getline(ls, element, ',');
-        if (isFloat(element)) {
-            testDataSet.num_cols[colNames[i]].push_back(std::stof(element));
-        } else {
-            testDataSet.cat_cols[colNames[i]].push_back(element);
-        }
-    }
 
     // Handle the rest of the data line by line
     while(getline(inputFile, line)) {
-        rowCount++; // keep track of how many rows there were
-
+        rowCount++;
         std::stringstream lineStream(line);
 
         /* extract each element in the row: since we can assume clean data */
         for(int i = 0; i < testDataSet.ncol; i++) {
             getline(lineStream, element, ',');
 
-            std::cout << " " << element; // to see if the column name was read correctly:
-
-            // ------ would have to check if element is categorical or numerical here:
-            // ------ based off that, would have to put data in vectors and struct here: ------
             if (isFloat(element)) {
                 testDataSet.num_cols[colNames[i]].push_back(std::stof(element));
             } else {
@@ -172,9 +148,7 @@ Dataset parseCSV(std::ifstream &inputFile) {
             }
 
         }
-        std::cout << std::endl;
     }
-
     testDataSet.nrow = rowCount;
 
     return testDataSet;
