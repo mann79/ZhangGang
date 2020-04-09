@@ -8,6 +8,7 @@
 using namespace std;
 using std::vector;
 
+//struct to be input parameter for chisquare()
 struct Dataset{
     int nrow; //number of rows
     int ncol; //number of cols
@@ -15,22 +16,22 @@ struct Dataset{
     std::unordered_map<string, vector<float>> num_cols; //numerical cols
 };
 
-void getData(Dataset& csvFile);
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v);
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v);
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v);
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v);
-ostream& operator<<(ostream& os, const vector<vector<int>>& v);
-ostream& operator<<(ostream& os, const vector<vector<float>>& v);
-unordered_map<string, int> countFrequencyCat_Col(vector<string> v);
-unordered_map<string, int> countFrequencyNum_Col(vector<float> v);
-vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2);
-vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2);
-vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2);
-float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2);
-int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2);
-void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2);
-void categoryColumnCombinations(Dataset a);
+void getData(Dataset& csvFile); //stub struct Dataset used prior to getting program to read and parse an actual csv file into the program as a Dataset struct
+ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<string>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<float>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, int>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, int> type variable
+ostream& operator<<(ostream& os, const unordered_map<float, int>& v); //overload operator function that allows program to print (cout) values of an unordered_map<float, int> type variable
+ostream& operator<<(ostream& os, const vector<vector<int>>& v); //overload operator function that allows program to print (cout) values of a vector<vector<int>> type variable
+ostream& operator<<(ostream& os, const vector<vector<float>>& v); //overload operator function that allows program to print (cout) values of a vector<vector<float>> type variable
+unordered_map<string, int> countFrequencyCat_Col(vector<string> v); //function that counts frequency of each type of entry in a categorical column and returns it as an unordered_map<string, int> type variable
+unordered_map<string, int> countFrequencyNum_Col(vector<float> v); //function that counts frequency of each type of entry in a numerical column and returns it as an unordered_map<string, int> type variable
+vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2); //this function builds a table (of vector<vector<int>> type) that determines the observed values of the two columns from the csv file being compared
+vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2);  //this function builds a table (of vector<vector<float>> type) that determines the expected values of the two columns from the csv file being compared
+vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2); //this function builds a table (of vector<vector<float>> type) that determines the calculated values (using the formula [(Observed-Expected)^2/Expected]) of the two columns from the csv file being compared
+float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2); //this function adds up the calculated values (from buildEOSquaredETable()) and returns the Chi-Square value of the two columns from the csv file being compared
+int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2);  // this function calculates and returns the degrees of freedom of the two columns from the csv file being compared
+void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2);//this function encases other functions to calculate the Chi-Square Value and Degrees of Freedom of the two columns being compared from the csv file
+void categoryColumnCombinations(Dataset a); //this function chooses two columns to compare and continues iterating until all columns have been compared to all other columns from the csv file
 
 int main() {
     Dataset csvFile1;
@@ -43,7 +44,8 @@ int main() {
     return 0;
 }
 
-void getData(Dataset& csvFile){
+void getData(Dataset& csvFile) //stub struct Dataset used prior to getting program to read and parse an actual csv file into the program as a Dataset struct
+{
     csvFile.ncol = 3;
     csvFile.nrow = 10;
     csvFile.cat_cols["gender"] = vector<string>();
@@ -80,7 +82,7 @@ void getData(Dataset& csvFile){
     csvFile.num_cols["numOfPet"].push_back(3);
     csvFile.num_cols["numOfPet"].push_back(1);
 }
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v)
+ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<string>> type variable
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -94,7 +96,7 @@ ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v)
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v)
+ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<float>> type variable
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -108,7 +110,7 @@ ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v)
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v)
+ostream& operator<<(ostream& os, const unordered_map<string, int>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, int> type variable
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -116,7 +118,7 @@ ostream& operator<<(ostream& os, const unordered_map<string, int>& v)
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v)
+ostream& operator<<(ostream& os, const unordered_map<float, int>& v) //overload operator function that allows program to print (cout) values of an unordered_map<float, int> type variable
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -124,20 +126,7 @@ ostream& operator<<(ostream& os, const unordered_map<float, int>& v)
     }
     return os;
 }
-ostream& operator<<(ostream& os, const vector<vector<int>>& v)
-{
-        for (int i = 0; i < v.size(); ++i)
-        {
-            cout << "[ ";
-            for (int j = 0; j < v[i].size(); j++)
-            {
-                os << v[i][j] << " ";
-            }
-            os << "]" << endl;
-        }
-    return os;
-}
-ostream& operator<<(ostream& os, const vector<vector<float>>& v)
+ostream& operator<<(ostream& os, const vector<vector<int>>& v) //overload operator function that allows program to print (cout) values of a vector<vector<int>> type variable
 {
     for (int i = 0; i < v.size(); ++i)
     {
@@ -150,7 +139,20 @@ ostream& operator<<(ostream& os, const vector<vector<float>>& v)
     }
     return os;
 }
-unordered_map<string, int> countFrequencyCat_Col(vector<string> v)
+ostream& operator<<(ostream& os, const vector<vector<float>>& v) //overload operator function that allows program to print (cout) values of a vector<vector<float>> type variable
+{
+    for (int i = 0; i < v.size(); ++i)
+    {
+        cout << "[ ";
+        for (int j = 0; j < v[i].size(); j++)
+        {
+            os << v[i][j] << " ";
+        }
+        os << "]" << endl;
+    }
+    return os;
+}
+unordered_map<string, int> countFrequencyCat_Col(vector<string> v) //function that counts frequency of each type of entry in a categorical column and returns it as an unordered_map<string, int> type variable
 {
     std::unordered_map<string, int> map1;
 
@@ -170,7 +172,7 @@ unordered_map<string, int> countFrequencyCat_Col(vector<string> v)
     //cout << map1 << endl;
     return map1;
 }
-unordered_map<string, int> countFrequencyNum_Col(vector<float> v)
+unordered_map<string, int> countFrequencyNum_Col(vector<float> v)//function that counts frequency of each type of entry in a numerical column and returns it as an unordered_map<string, int> type variable
 {
     std::unordered_map<string, int> map1;
 
@@ -190,7 +192,7 @@ unordered_map<string, int> countFrequencyNum_Col(vector<float> v)
     //cout << map1 << endl;
     return map1;
 }
-vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2)
+vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2) //this function builds a table (of vector<vector<int>> type) that determines the observed values of the two columns from the csv file being compared
 {
     int r = map1.size() + 1;
     int c = map2.size() + 1;
@@ -201,22 +203,22 @@ vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unord
 
     for (int i = 0; i < r-1; i++)
     {
-            iter2 = map2.begin();
-            for (int j = 0; j < c-1; j++)
-            {
-                    v[i][j] = iter1->second + iter2->second;
-                    v[i][c-1] = v[i][c-1] + v[i][j];
-                    v[r-1][j] = v[r-1][j] + v[i][j];
-                    v[r-1][c-1] = v[r-1][c-1] + v[i][j];
-                    iter2++;
-            }
-            iter1++;
+        iter2 = map2.begin();
+        for (int j = 0; j < c-1; j++)
+        {
+            v[i][j] = iter1->second + iter2->second;
+            v[i][c-1] = v[i][c-1] + v[i][j];
+            v[r-1][j] = v[r-1][j] + v[i][j];
+            v[r-1][c-1] = v[r-1][c-1] + v[i][j];
+            iter2++;
+        }
+        iter1++;
     }
     //cout << "Observed Values Table:" << endl;
     //cout << v;
     return v;
 }
-vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2)
+vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2)//this function builds a table (of vector<vector<float>> type) that determines the expected values of the two columns from the csv file being compared
 {
     int r = map1.size() + 1;
     int c = map2.size() + 1;
@@ -236,7 +238,7 @@ vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_
     //cout << v2;
     return v2;
 }
-vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2)
+vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2)//this function builds a table (of vector<vector<float>> type) that determines the calculated values (using the formula [(Observed-Expected)^2/Expected]) of the two columns from the csv file being compared
 {
     int r = map1.size();
     int c = map2.size();
@@ -253,7 +255,7 @@ vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector
     //cout << v3;
     return v3;
 }
-float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2)
+float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2) //this function adds up the calculated values (from buildEOSquaredETable()) and returns the Chi-Square value of the two columns from the csv file being compared
 {
     int r = map1.size();
     int c = map2.size();
@@ -270,13 +272,13 @@ float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map
     cout << "Chi-Square Value: "<< sum << endl;
     return sum;
 }
-int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2)
+int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2) // this function calculates and returns the degrees of freedom of the two columns being compared from the csv file
 {
     int dFree = (map1.size()- 1) * (map2.size() - 1);
     cout << "Degree of Freedom: " << dFree << endl;
     return dFree;
 }
-void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2)
+void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2) //this function encases other functions to calculate the Chi-Square Value and Degrees of Freedom of the two columns being compared from the csv file
 {
     vector<vector<int>> obsValues = buildContingencyTable(mp1,mp2);
     vector<vector<float>> expValues = buildExpectedValuesTable(obsValues, mp1, mp2);
@@ -284,7 +286,7 @@ void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> m
     float chiSquareValue = sumEOSquareEValues(eOSquareValues, mp1, mp2);
     int degreeFreedom = degreeOfFreedom(mp1, mp2);
 }
-void categoryColumnCombinations(Dataset a)
+void categoryColumnCombinations(Dataset a) //this function chooses two columns to compare and continues iterating until all columns have been compared to all other columns from the csv file
 {
     unordered_map<string, vector<string>>:: iterator iter1c;
     unordered_map<string, vector<string>>:: iterator iter2c;
