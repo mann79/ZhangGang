@@ -13,7 +13,7 @@
 */
 
 // Represents the parsed CSV files that main will input to the library via function calls
-struct Dataset {
+struct Dataset{
     int nrow; //number of rows
     int ncol; //number of cols
     std::unordered_map<std::string, std::vector<std::string>> cat_cols; //categorical cols
@@ -28,6 +28,6 @@ std::vector<std::vector<float>> buildEOSquaredETable(std::vector<std::vector<int
 float sumEOSquareEValues(std::vector<std::vector<float>> v, std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
 int degreeOfFreedom(std::unordered_map<std::string, int> map1, std::unordered_map<std::string, int> map2);
 void compareColumns(std::unordered_map<std::string, int> mp1, std::unordered_map<std::string, int> mp2);
-void categoryColumnCombinations(Dataset a);
+void categoryColumnCombinations(Dataset dataSet);
 
 #endif //CHISQUARE_DATASET_H

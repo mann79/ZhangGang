@@ -1,1 +1,1 @@
-add_library(include library.cpp)
+add_library(include library.cpp ChisquarePValueFinder.cpp)

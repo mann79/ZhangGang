@@ -1,18 +1,27 @@
 // Do stuff to dataset structs in here
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <cmath>
 
-void categoryColumnCombinations(Dataset a) {
+#include "../model/dataset.h"
+
+void categoryColumnCombinations(Dataset dataSet) {
     std::unordered_map<std::string, std::vector<std::string>>:: iterator iter1c;
     std::unordered_map<std::string, std::vector<std::string>>:: iterator iter2c;
     std::unordered_map<std::string, std::vector<float>>:: iterator iter1n;
     std::unordered_map<std::string, std::vector<float>>:: iterator iter2n;
 
-    if(a.cat_cols.size() > 1) {
+    if(dataSet.cat_cols.size() > 1) {
         //comparing category columns
-        for (iter1c = a.cat_cols.begin(); iter1c != a.cat_cols.end(); iter1c++) {
-            for (iter2c = iter1c++; iter2c != a.cat_cols.end(); iter2c++) {
+        for (iter1c = dataSet.cat_cols.begin(); iter1c != dataSet.cat_cols.end(); iter1c++) {
+            for (iter2c = iter1c++; iter2c != dataSet.cat_cols.end(); iter2c++) {
                 if(iter1c->first != iter2c->first) {
-                    std::unordered_map<std::string, int> mp1 = countFrequencyCat_Col(a.cat_cols[iter1c->first]);
-                    std::unordered_map<std::string, int> mp2 = countFrequencyCat_Col(a.cat_cols[iter2c->first]);
+                    std::unordered_map<std::string, int> mp1 = countFrequencyCat_Col(dataSet.cat_cols[iter1c->first]);
+                    std::unordered_map<std::string, int> mp2 = countFrequencyCat_Col(dataSet.cat_cols[iter2c->first]);
                     std::cout << "Category 1: '" << iter1c->first << "' compared to Category 2: '" << iter2c->first << "'" << std::endl;
                     compareColumns(mp1, mp2);
                 }
@@ -20,13 +29,13 @@ void categoryColumnCombinations(Dataset a) {
         }
     }
 
-    if(a.num_cols.size() > 1) {
+    if(dataSet.num_cols.size() > 1) {
         //comparing numerical columns
-        for (iter1n = a.num_cols.begin(); iter1n != a.num_cols.end(); iter1n++) {
-            for (iter2n = iter1n++; iter2n != a.num_cols.end(); iter2n++) {
+        for (iter1n = dataSet.num_cols.begin(); iter1n != dataSet.num_cols.end(); iter1n++) {
+            for (iter2n = iter1n++; iter2n != dataSet.num_cols.end(); iter2n++) {
                 if(iter1n->first != iter2n->first) {
-                    std::unordered_map<std::string, int> mp1 = countFrequencyNum_Col(a.num_cols[iter1n->first]);
-                    std::unordered_map<std::string, int> mp2 = countFrequencyNum_Col(a.num_cols[iter2n->first]);
+                    std::unordered_map<std::string, int> mp1 = countFrequencyNum_Col(dataSet.num_cols[iter1n->first]);
+                    std::unordered_map<std::string, int> mp2 = countFrequencyNum_Col(dataSet.num_cols[iter2n->first]);
                     std::cout << "Category 1: '" << iter1n->first << "' compared to Category 2: '" << iter2n->first << "'" << std::endl;
                     compareColumns(mp1, mp2);
                 }
@@ -34,12 +43,12 @@ void categoryColumnCombinations(Dataset a) {
         }
     }
 
-    if(!a.cat_cols.empty() && !a.num_cols.empty()) {
+    if(!dataSet.cat_cols.empty() && !dataSet.num_cols.empty()) {
         //comparing category columns and numerical columns
-        for (iter1c = a.cat_cols.begin(); iter1c != a.cat_cols.end(); iter1c++) {
-            for (iter1n = a.num_cols.begin(); iter1n != a.num_cols.end(); iter1n++) {
-                std::unordered_map<std::string, int> mp1 = countFrequencyCat_Col(a.cat_cols[iter1c->first]);
-                std::unordered_map<std::string, int> mp2 = countFrequencyNum_Col(a.num_cols[iter1n->first]);
+        for (iter1c = dataSet.cat_cols.begin(); iter1c != dataSet.cat_cols.end(); iter1c++) {
+            for (iter1n = dataSet.num_cols.begin(); iter1n != dataSet.num_cols.end(); iter1n++) {
+                std::unordered_map<std::string, int> mp1 = countFrequencyCat_Col(dataSet.cat_cols[iter1c->first]);
+                std::unordered_map<std::string, int> mp2 = countFrequencyNum_Col(dataSet.num_cols[iter1n->first]);
                 std::cout << "Category 1: '" << iter1c->first << "' compared to Category 2: '" << iter1n->first << "'" << std::endl;
                 compareColumns(mp1, mp2);
             }
@@ -59,7 +68,7 @@ std::unordered_map<std::string, int> countFrequencyCat_Col(std::vector<std::stri
     std::unordered_map<std::string, int> map1;
 
     for (const auto &i : v) {
-        std::unordered_map<std::string, int>::iterator hasKey = map1.find(i);
+        auto hasKey = map1.find(i);
 
         if(hasKey == map1.end()) {
             map1[i] = int();
@@ -76,7 +85,7 @@ std::unordered_map<std::string, int> countFrequencyNum_Col(std::vector<float> v)
     std::unordered_map<std::string, int> map1;
 
     for(float i : v) {
-        std::unordered_map<std::string, int>::iterator hasKey = map1.find(std::to_string(i));
+        auto hasKey = map1.find(std::to_string(i));
         if(hasKey == map1.end()) {
             map1[std::to_string(i)] = int();
             map1[std::to_string(i)] = 1;
