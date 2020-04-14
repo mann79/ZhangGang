@@ -10,7 +10,7 @@
 #include <cmath>
 
 /* Assumptions about input datasets:
-	1. There are no missing values.
+	1. There are no missing values
 	2. There are no characters in a numeric column
 	3. The dataset has at least 2 rows and 2 columns
 	4. The dataset for chi-square correlation has at least 2 categorical columns

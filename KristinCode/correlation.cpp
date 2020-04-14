@@ -1,4 +1,4 @@
-// Do stuff to Correlation structs in here.
+// Do stuff to Correlation structs in here
 
 #include <vector>
 #include <iostream>

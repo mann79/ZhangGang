@@ -1,4 +1,4 @@
-/* the command line usage for the driver program is the following, where {p-value} is an optional value:
+/* The command line usage for the driver program is the following, where {p-value} is an optional value:
  *          driver inputFileName {p-value}
  *
  *  the driver exe currently needs to be in the same directory as the input file.
