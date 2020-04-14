@@ -15,33 +15,12 @@
 #include <cmath>
 #include <model/dataset.h>
 
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, vector<string>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v);
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, vector<float>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v);
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, int> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v);
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<float, int> type variable
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v);
-
-//overload operator function that allows program to print (cout) values of a
-//vector<vector<int>> type variable
-ostream& operator<<(ostream& os, const vector<vector<int>>& v);
-
-//overload operator function that allows program to print (cout) values of a
-//vector<vector<float>> type variable
-ostream& operator<<(ostream& os, const vector<vector<float>>& v);
-
-//overload operator function that allows program to print (cout) values of a
-//Correlation struct type variable
-ostream& operator<<(ostream& os, const Correlation& a);
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, std::vector<std::string>>& v);
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string,std::vector<float>>& v);
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, int>& v);
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<float, int>& v);
+std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<int>>& v);
+std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<float>>& v);;
 
 bool isFloat(const std::string &input);
 Dataset parseCSV(std::ifstream &inputFile);
@@ -118,104 +97,6 @@ int main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
 }
 
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, vector<string>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v)
-{
-    for (auto it : v) {
-        os << it.first << " : ";
-        os << "[";
-        for (int i = 0; i < it.second.size(); ++i) {
-            os << it.second[i];
-            if (i != it.second.size() - 1)
-                os << ", ";
-        }
-        os << "]\n";
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, vector<float>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v)
-{
-    for (auto it : v) {
-        os << it.first << " : ";
-        os << "[";
-        for (int i = 0; i < it.second.size(); ++i) {
-            os << it.second[i];
-            if (i != it.second.size() - 1)
-                os << ", ";
-        }
-        os << "]\n";
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<string, int> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v)
-{
-    for (auto it : v) {
-        os << it.first << " : ";
-        os << it.second << endl;
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of an
-//unordered_map<float, int> type variable
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v)
-{
-    for (auto it : v) {
-        os << it.first << " : ";
-        os << it.second << endl;
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of a
-//vector<vector<int>> type variable
-ostream& operator<<(ostream& os, const vector<vector<int>>& v)
-{
-    for (int i = 0; i < v.size(); ++i)
-    {
-        cout << "[ ";
-        for (int j = 0; j < v[i].size(); j++)
-        {
-            os << v[i][j] << " ";
-        }
-        os << "]" << endl;
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of a
-//vector<vector<float>> type variable
-ostream& operator<<(ostream& os, const vector<vector<float>>& v)
-{
-    for (int i = 0; i < v.size(); ++i)
-    {
-        cout << "[ ";
-        for (int j = 0; j < v[i].size(); j++)
-        {
-            os << v[i][j] << " ";
-        }
-        os << "]" << endl;
-    }
-    return os;
-}
-
-//overload operator function that allows program to print (cout) values of a
-//Correlation struct type variable
-ostream& operator<<(ostream& os, const Correlation& a)
-{
-    os << "Column 1: " << a.column_1_name << endl;
-    os << "Column 2: " << a.column_2_name << endl;
-    os << "Correlation Coefficient: " << a.coefficient << endl;
-    return os;
-}
-
 bool isFloat(const std::string &input) {
     std::istringstream stringStream(input);
     float f;
@@ -271,4 +152,77 @@ Dataset parseCSV(std::ifstream &inputFile) {
     testDataSet.nrow = rowCount;
 
     return testDataSet;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, std::vector<std::string>>& v) {
+    for (auto it : v) {
+        os << it.first << " : ";
+        os << "[";
+
+        for (int i = 0; i < it.second.size(); ++i) {
+            os << it.second[i];
+            if (i != it.second.size() - 1) {
+                os << ", ";
+            }
+        }
+
+        os << "]\n";
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, std::vector<float>>& v) {
+    for (auto it : v) {
+        os << it.first << " : ";
+        os << "[";
+
+        for (int i = 0; i < it.second.size(); ++i) {
+            os << it.second[i];
+            if (i != it.second.size() - 1)
+                os << ", ";
+        }
+
+        os << "]\n";
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<std::string, int>& v) {
+    for (const auto& it : v) {
+        os << it.first << " : ";
+        os << it.second << std::endl;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::unordered_map<float, int>& v) {
+    for (auto it : v) {
+        os << it.first << " : ";
+        os << it.second << std::endl;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<int>>& v) {
+    for (const auto & i : v) {
+        std::cout << "[ ";
+        for (int j : i) {
+            os << j << " ";
+        }
+        os << "]" << std::endl;
+    }
+    return os;
+}
+
+std::ostream& operator<<(std::ostream& os, const std::vector<std::vector<float>>& v) {
+    for (const auto & i : v) {
+        std::cout << "[ ";
+
+        for (float j : i) {
+            os << j << " ";
+        }
+
+        os << "]" << std::endl;
+    }
+    return os;
 }

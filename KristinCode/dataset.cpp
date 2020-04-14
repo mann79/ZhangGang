@@ -1,4 +1,4 @@
-// Do stuff to dataset structs in here
+// Do stuff to dataset structs in here.
 #include <string>
 #include <vector>
 #include <unordered_map>
