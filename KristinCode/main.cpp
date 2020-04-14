@@ -1,88 +1,126 @@
+/* the command line usage for the driver program is the following, where {p-value} is an optional value:
+ *          driver inputFileName {p-value}
+ *
+ *  the driver exe currently needs to be in the same directory as the input file.
+ *
+ *  main will attempt to parse a user-specified CSV file and build a DataSet struct
+ *  then a chi-square test will be ran on that struct to determine correlation between categorical/numerical data.
+ */
 #include <iostream>
+#include <fstream>
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <cmath>
+#include <model/dataset.h>
 
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, vector<string>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v);
 
-using namespace std;
-using std::vector;
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, vector<float>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v);
 
-//struct to be input parameter for chisquare()
-struct Dataset{
-    int nrow; //number of rows
-    int ncol; //number of cols
-    std::unordered_map<string, vector<string>> cat_cols; //categorical cols
-    std::unordered_map<string, vector<float>> num_cols; //numerical cols
-};
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, int> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, int>& v);
 
-void getData(Dataset& csvFile); //stub struct Dataset used prior to getting program to read and parse an actual csv file into the program as a Dataset struct
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<string>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<float>> type variable
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v); //overload operator function that allows program to print (cout) values of an unordered_map<string, int> type variable
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v); //overload operator function that allows program to print (cout) values of an unordered_map<float, int> type variable
-ostream& operator<<(ostream& os, const vector<vector<int>>& v); //overload operator function that allows program to print (cout) values of a vector<vector<int>> type variable
-ostream& operator<<(ostream& os, const vector<vector<float>>& v); //overload operator function that allows program to print (cout) values of a vector<vector<float>> type variable
-unordered_map<string, int> countFrequencyCat_Col(vector<string> v); //function that counts frequency of each type of entry in a categorical column and returns it as an unordered_map<string, int> type variable
-unordered_map<string, int> countFrequencyNum_Col(vector<float> v); //function that counts frequency of each type of entry in a numerical column and returns it as an unordered_map<string, int> type variable
-vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2); //this function builds a table (of vector<vector<int>> type) that determines the observed values of the two columns from the csv file being compared
-vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2);  //this function builds a table (of vector<vector<float>> type) that determines the expected values of the two columns from the csv file being compared
-vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2); //this function builds a table (of vector<vector<float>> type) that determines the calculated values (using the formula [(Observed-Expected)^2/Expected]) of the two columns from the csv file being compared
-float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2); //this function adds up the calculated values (from buildEOSquaredETable()) and returns the Chi-Square value of the two columns from the csv file being compared
-int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2);  // this function calculates and returns the degrees of freedom of the two columns from the csv file being compared
-void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2);//this function encases other functions to calculate the Chi-Square Value and Degrees of Freedom of the two columns being compared from the csv file
-void categoryColumnCombinations(Dataset a); //this function chooses two columns to compare and continues iterating until all columns have been compared to all other columns from the csv file
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<float, int> type variable
+ostream& operator<<(ostream& os, const unordered_map<float, int>& v);
 
-int main() {
-    Dataset csvFile1;
-    getData(csvFile1);
-    //cout << "csvFile1.ncol:" << csvFile1.ncol << endl;
-    //cout << "csvFile1.nrow:" << csvFile1.nrow << endl;
-    //cout << csvFile1.cat_cols << csvFile1.num_cols << endl;
-    categoryColumnCombinations(csvFile1);
+//overload operator function that allows program to print (cout) values of a
+//vector<vector<int>> type variable
+ostream& operator<<(ostream& os, const vector<vector<int>>& v);
 
-    return 0;
+//overload operator function that allows program to print (cout) values of a
+//vector<vector<float>> type variable
+ostream& operator<<(ostream& os, const vector<vector<float>>& v);
+
+//overload operator function that allows program to print (cout) values of a
+//Correlation struct type variable
+ostream& operator<<(ostream& os, const Correlation& a);
+
+bool isFloat(const std::string &input);
+Dataset parseCSV(std::ifstream &inputFile);
+
+// TODO The main program should be flexible enough to read in multiple files
+int main(int argc, char *argv[]) {
+    const double P_VALUE = 0.5; // Default P-Value to be used in chi-square test when user does not pass in value at command line
+
+    std::ifstream inputFile;
+    Dataset testDataSet = {};
+
+    /*
+     * case 2 - Handle case that user passes in only name of CSV file
+     * case 3 - Handle case that user passes in name of CSV file & P-Value
+     * default - The user has passed in either too few or too many arguments at the command line
+     */
+    switch(argc) {
+        case 2:
+            // Check that argument is a file that exists and if so open the file for read only
+            inputFile.open(argv[argc-1]);
+            if (!inputFile) {
+                // TODO possibly throw an error instead of printing and exiting
+                std::cout << "Unable to open file\n";
+                exit(EXIT_FAILURE); // terminate with error
+            }
+
+            testDataSet = parseCSV(inputFile); // parse the CSV file & return a DataSet struct
+
+            //TODO REMOVE this before production ----- Simple test that the data was input correctly
+            std::cout << "testDataSet.ncol:" << testDataSet.ncol << std::endl;
+            std::cout << "testDataSet.nrow:" << testDataSet.nrow << std::endl;
+            std::cout << testDataSet.cat_cols << testDataSet.num_cols << std::endl;
+
+            /*
+             * call entry func e.g. chisquare()
+             * entry func should take AT LEAST two values:
+             *      p-value which should be default 0.5 but configurable
+             *      the previously built dataset struct
+             * e.g. chisquare(p-value, dataset)
+             * */
+
+            break;
+        case 3:
+            // Check that argument is a file that exists and if so open the file for read only
+            inputFile.open(argv[argc-2]);
+            if (!inputFile) {
+                // TODO possibly throw an error instead of printing and exiting
+                std::cout << "Unable to open file\n";
+                exit(EXIT_FAILURE); // terminate with error
+            }
+
+            testDataSet = parseCSV(inputFile); // parse the CSV file & return a DataSet struct
+
+            //TODO REMOVE this before production ----- Simple test that the data was input correctly
+            std::cout << "testDataSet.ncol:" << testDataSet.ncol << std::endl;
+            std::cout << "testDataSet.nrow:" << testDataSet.nrow << std::endl;
+            std::cout << testDataSet.cat_cols << testDataSet.num_cols << std::endl;
+
+            /*
+             * call entry func e.g. chisquare()
+             * entry func should take AT LEAST two values:
+             *      p-value which should be default 0.5 but configurable
+             *      the previously built dataset struct
+             * e.g. chisquare(p-value, dataset)
+             * */
+
+            break;
+        default:
+            std::cout << "You have entered an invalid number of arguments." << std::endl;
+            std::cout << "Please try again from the command line with usage 'driver fileName {p-value}' " << std::endl;
+            break;
+    }
+
+    exit(EXIT_SUCCESS);
 }
 
-void getData(Dataset& csvFile) //stub struct Dataset used prior to getting program to read and parse an actual csv file into the program as a Dataset struct
-{
-    csvFile.ncol = 3;
-    csvFile.nrow = 10;
-    csvFile.cat_cols["gender"] = vector<string>();
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("male");
-    csvFile.cat_cols["gender"].push_back("female");
-    csvFile.cat_cols["gender"].push_back("female");
-    csvFile.cat_cols["gender"].push_back("female");
-    csvFile.cat_cols["gender"].push_back("female");
-    csvFile.cat_cols["pet"] = vector<string>();
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("cat");
-    csvFile.cat_cols["pet"].push_back("cat");
-    csvFile.cat_cols["pet"].push_back("cat");
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("dog");
-    csvFile.cat_cols["pet"].push_back("cat");
-    csvFile.num_cols["numOfPet"] = vector<float>();
-    csvFile.num_cols["numOfPet"].push_back(1);
-    csvFile.num_cols["numOfPet"].push_back(2);
-    csvFile.num_cols["numOfPet"].push_back(3);
-    csvFile.num_cols["numOfPet"].push_back(1);
-    csvFile.num_cols["numOfPet"].push_back(2);
-    csvFile.num_cols["numOfPet"].push_back(3);
-    csvFile.num_cols["numOfPet"].push_back(1);
-    csvFile.num_cols["numOfPet"].push_back(2);
-    csvFile.num_cols["numOfPet"].push_back(3);
-    csvFile.num_cols["numOfPet"].push_back(1);
-}
-ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<string>> type variable
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, vector<string>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v)
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -96,7 +134,10 @@ ostream& operator<<(ostream& os, const unordered_map<string, vector<string>>& v)
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, vector<float>> type variable
+
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, vector<float>> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v)
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -110,7 +151,10 @@ ostream& operator<<(ostream& os, const unordered_map<string, vector<float>>& v) 
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<string, int>& v) //overload operator function that allows program to print (cout) values of an unordered_map<string, int> type variable
+
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<string, int> type variable
+ostream& operator<<(ostream& os, const unordered_map<string, int>& v)
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -118,7 +162,10 @@ ostream& operator<<(ostream& os, const unordered_map<string, int>& v) //overload
     }
     return os;
 }
-ostream& operator<<(ostream& os, const unordered_map<float, int>& v) //overload operator function that allows program to print (cout) values of an unordered_map<float, int> type variable
+
+//overload operator function that allows program to print (cout) values of an
+//unordered_map<float, int> type variable
+ostream& operator<<(ostream& os, const unordered_map<float, int>& v)
 {
     for (auto it : v) {
         os << it.first << " : ";
@@ -126,7 +173,10 @@ ostream& operator<<(ostream& os, const unordered_map<float, int>& v) //overload 
     }
     return os;
 }
-ostream& operator<<(ostream& os, const vector<vector<int>>& v) //overload operator function that allows program to print (cout) values of a vector<vector<int>> type variable
+
+//overload operator function that allows program to print (cout) values of a
+//vector<vector<int>> type variable
+ostream& operator<<(ostream& os, const vector<vector<int>>& v)
 {
     for (int i = 0; i < v.size(); ++i)
     {
@@ -139,7 +189,10 @@ ostream& operator<<(ostream& os, const vector<vector<int>>& v) //overload operat
     }
     return os;
 }
-ostream& operator<<(ostream& os, const vector<vector<float>>& v) //overload operator function that allows program to print (cout) values of a vector<vector<float>> type variable
+
+//overload operator function that allows program to print (cout) values of a
+//vector<vector<float>> type variable
+ostream& operator<<(ostream& os, const vector<vector<float>>& v)
 {
     for (int i = 0; i < v.size(); ++i)
     {
@@ -152,196 +205,70 @@ ostream& operator<<(ostream& os, const vector<vector<float>>& v) //overload oper
     }
     return os;
 }
-unordered_map<string, int> countFrequencyCat_Col(vector<string> v) //function that counts frequency of each type of entry in a categorical column and returns it as an unordered_map<string, int> type variable
-{
-    std::unordered_map<string, int> map1;
 
-    for(int i = 0; i < v.size(); i++)
-    {
-        unordered_map<string, int>::iterator hasKey = map1.find(v[i]);
-        if(hasKey == map1.end())
-        {
-            map1[v[i]] = int();
-            map1[v[i]] = 1;
-        }
-        else
-        {
-            map1[v[i]]++;
-        }
-    }
-    //cout << map1 << endl;
-    return map1;
-}
-unordered_map<string, int> countFrequencyNum_Col(vector<float> v)//function that counts frequency of each type of entry in a numerical column and returns it as an unordered_map<string, int> type variable
+//overload operator function that allows program to print (cout) values of a
+//Correlation struct type variable
+ostream& operator<<(ostream& os, const Correlation& a)
 {
-    std::unordered_map<string, int> map1;
+    os << "Column 1: " << a.column_1_name << endl;
+    os << "Column 2: " << a.column_2_name << endl;
+    os << "Correlation Coefficient: " << a.coefficient << endl;
+    return os;
+}
 
-    for(int i = 0; i < v.size(); i++)
-    {
-        unordered_map<string, int>::iterator hasKey = map1.find(to_string(v[i]));
-        if(hasKey == map1.end())
-        {
-            map1[to_string(v[i])] = int();
-            map1[to_string(v[i])] = 1;
-        }
-        else
-        {
-            map1[to_string(v[i])]++;
-        }
-    }
-    //cout << map1 << endl;
-    return map1;
+bool isFloat(const std::string &input) {
+    std::istringstream stringStream(input);
+    float f;
+    stringStream >> std::noskipws >> f; // noskipws considers leading whitespace invalid
+    return stringStream.eof() && !stringStream.fail(); // check the entire string was consumed and if either failbit or badabit is set
 }
-vector<vector<int>> buildContingencyTable(unordered_map<string, int> map1, unordered_map<string, int> map2) //this function builds a table (of vector<vector<int>> type) that determines the observed values of the two columns from the csv file being compared
-{
-    int r = map1.size() + 1;
-    int c = map2.size() + 1;
-    vector<vector<int>> v(r, vector<int> (c));
-    unordered_map<string, int>:: iterator iter1;
-    unordered_map<string, int>:: iterator iter2;
-    iter1 = map1.begin();
 
-    for (int i = 0; i < r-1; i++)
-    {
-        iter2 = map2.begin();
-        for (int j = 0; j < c-1; j++)
-        {
-            v[i][j] = iter1->second + iter2->second;
-            v[i][c-1] = v[i][c-1] + v[i][j];
-            v[r-1][j] = v[r-1][j] + v[i][j];
-            v[r-1][c-1] = v[r-1][c-1] + v[i][j];
-            iter2++;
-        }
-        iter1++;
-    }
-    //cout << "Observed Values Table:" << endl;
-    //cout << v;
-    return v;
-}
-vector<vector<float>> buildExpectedValuesTable(vector<vector<int>> v, unordered_map<string, int> map1, unordered_map<string, int> map2)//this function builds a table (of vector<vector<float>> type) that determines the expected values of the two columns from the csv file being compared
-{
-    int r = map1.size() + 1;
-    int c = map2.size() + 1;
-    vector<vector<float>> v2(r, vector<float> (c));
+Dataset parseCSV(std::ifstream &inputFile) {
+    Dataset testDataSet = {};
+    int colCount = 0;
+    int rowCount = 0;
+    std::vector<std::string> colNames;
+    std::string line;
+    std::string element;
 
-    for (int i = 0; i < r-1; i++)
-    {
-        v2[i][c-1] = static_cast<float>(v[i][c-1]);
-        for (int j = 0; j < c-1; j++)
-        {
-            v2[r-1][j] = static_cast<float>(v[r-1][j]);
-            v2[i][j] = (static_cast<float>(v[r-1][j]) * v[i][c-1])/v[r-1][c-1];
-        }
-    }
-    v2[r-1][c-1] = static_cast<float>(v[r-1][c-1]);
-    //cout << "Expected Values Table:" << endl;
-    //cout << v2;
-    return v2;
-}
-vector<vector<float>> buildEOSquaredETable(vector<vector<int>> v1, vector<vector<float>> v2, unordered_map<string, int> map1, unordered_map<string, int> map2)//this function builds a table (of vector<vector<float>> type) that determines the calculated values (using the formula [(Observed-Expected)^2/Expected]) of the two columns from the csv file being compared
-{
-    int r = map1.size();
-    int c = map2.size();
-    vector<vector<float>> v3(r, vector<float> (c));
+    if(inputFile.good()) { // referencing: https://www.geeksforgeeks.org/ios-good-function-in-c-with-examples/
+        getline(inputFile, line);
+        std::stringstream firstLineStream(line);
 
-    for (int i = 0; i < r; i++)
-    {
-        for (int j = 0; j < c; j++)
-        {
-            v3[i][j] = pow(v1[i][j] - v2[i][j], 2.0) / v2[i][j];
-        }
-    }
-    //cout << "(O-E)^2 / E Values Table:" << endl;
-    //cout << v3;
-    return v3;
-}
-float sumEOSquareEValues(vector<vector<float>> v, unordered_map<string, int> map1, unordered_map<string, int> map2) //this function adds up the calculated values (from buildEOSquaredETable()) and returns the Chi-Square value of the two columns from the csv file being compared
-{
-    int r = map1.size();
-    int c = map2.size();
+        // Parse the first row and build the DataSet struct's maps of numerical/categorical data
+        while(getline(firstLineStream, element, ',')) {
+            colCount++;
 
-    float sum = 0;
-
-    for (int i = 0; i < r; i++)
-    {
-        for (int j = 0; j < c; j++)
-        {
-            sum = sum + v[i][j];
-        }
-    }
-    cout << "Chi-Square Value: "<< sum << endl;
-    return sum;
-}
-int degreeOfFreedom(unordered_map<string, int> map1, unordered_map<string, int> map2) // this function calculates and returns the degrees of freedom of the two columns being compared from the csv file
-{
-    int dFree = (map1.size()- 1) * (map2.size() - 1);
-    cout << "Degree of Freedom: " << dFree << endl;
-    return dFree;
-}
-void compareColumns(unordered_map<string, int> mp1, unordered_map<string, int> mp2) //this function encases other functions to calculate the Chi-Square Value and Degrees of Freedom of the two columns being compared from the csv file
-{
-    vector<vector<int>> obsValues = buildContingencyTable(mp1,mp2);
-    vector<vector<float>> expValues = buildExpectedValuesTable(obsValues, mp1, mp2);
-    vector<vector<float>> eOSquareValues = buildEOSquaredETable(obsValues, expValues, mp1, mp2);
-    float chiSquareValue = sumEOSquareEValues(eOSquareValues, mp1, mp2);
-    int degreeFreedom = degreeOfFreedom(mp1, mp2);
-}
-void categoryColumnCombinations(Dataset a) //this function chooses two columns to compare and continues iterating until all columns have been compared to all other columns from the csv file
-{
-    unordered_map<string, vector<string>>:: iterator iter1c;
-    unordered_map<string, vector<string>>:: iterator iter2c;
-    unordered_map<string, vector<float>>:: iterator iter1n;
-    unordered_map<string, vector<float>>:: iterator iter2n;
-
-    if(a.cat_cols.size() > 1)
-    {
-        for (iter1c = a.cat_cols.begin(); iter1c != a.cat_cols.end(); iter1c++) //comparing category columns
-        {
-            for (iter2c = iter1c++; iter2c != a.cat_cols.end(); iter2c++)
-            {
-                if(iter1c->first != iter2c->first)
-                {
-                    unordered_map<string, int> mp1 = countFrequencyCat_Col(a.cat_cols[iter1c->first]);
-                    unordered_map<string, int> mp2 = countFrequencyCat_Col(a.cat_cols[iter2c->first]);
-                    cout << "Category 1: '" << iter1c->first << "' compared to Category 2: '" << iter2c->first << "'" << endl;
-                    compareColumns(mp1, mp2);
-                }
+            if (isFloat(element)) {
+                colNames.push_back("Column " + std::to_string(colCount) + " - numerical");
+                testDataSet.num_cols[colNames[colCount-1]].push_back(std::stof(element));
+            } else {
+                colNames.push_back("Column " + std::to_string(colCount) + " - categorical");
+                testDataSet.cat_cols[colNames[colCount-1]].push_back(element);
             }
         }
     }
+    testDataSet.ncol = colCount;
+    rowCount++;
 
-    if(a.num_cols.size() > 1)
-    {
-        for (iter1n = a.num_cols.begin(); iter1n != a.num_cols.end(); iter1n++) //comparing numerical columns
-        {
-            for (iter2n = iter1n++; iter2n != a.num_cols.end(); iter2n++)
-            {
-                if(iter1n->first != iter2n->first)
-                {
-                    unordered_map<string, int> mp1 = countFrequencyNum_Col(a.num_cols[iter1n->first]);
-                    unordered_map<string, int> mp2 = countFrequencyNum_Col(a.num_cols[iter2n->first]);
-                    cout << "Category 1: '" << iter1n->first << "' compared to Category 2: '" << iter2n->first << "'" << endl;
-                    compareColumns(mp1, mp2);
-                }
+    // Handle the rest of the data line by line
+    while(getline(inputFile, line)) {
+        rowCount++;
+        std::stringstream lineStream(line);
+
+        /* extract each element in the row: since we can assume clean data */
+        for(int i = 0; i < testDataSet.ncol; i++) {
+            getline(lineStream, element, ',');
+
+            if (isFloat(element)) {
+                testDataSet.num_cols[colNames[i]].push_back(std::stof(element));
+            } else {
+                testDataSet.cat_cols[colNames[i]].push_back(element);
             }
+
         }
     }
+    testDataSet.nrow = rowCount;
 
-    if(a.cat_cols.size() > 0 && a.num_cols.size() > 0)
-    {
-        for (iter1c = a.cat_cols.begin(); iter1c != a.cat_cols.end(); iter1c++) //comparing category columns and numerical columns
-        {
-            for (iter1n = a.num_cols.begin(); iter1n != a.num_cols.end(); iter1n++)
-            {
-                unordered_map<string, int> mp1 = countFrequencyCat_Col(a.cat_cols[iter1c->first]);
-                unordered_map<string, int> mp2 = countFrequencyNum_Col(a.num_cols[iter1n->first]);
-                cout << "Category 1: '" << iter1c->first << "' compared to Category 2: '" << iter1n->first << "'" << endl;
-                compareColumns(mp1, mp2);
-            }
-        }
-    }
+    return testDataSet;
 }
-
-
-
-
